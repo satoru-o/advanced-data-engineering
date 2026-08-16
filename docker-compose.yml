@@ -1,0 +1,78 @@
+# 全チュートリアル共通の環境（postgres + dbt）
+#
+# ホストで叩くのは mk だけ。dbt コマンドはコンテナの中で自分で打つ。
+#   mk tutorial-01 start   → 起動して tutorial-01 のディレクトリに入る
+#
+# ---- bind mount 一覧（ホストパス → コンテナパス）-------------------------------
+#  ./               → /work                        (dbt)       リポジトリ全体。
+#                                                              各 tutorial-NN/ と shared/profiles.yml、
+#                                                              生成物 target/ logs/ もここに出る
+#  ./warehouse/init → /docker-entrypoint-initdb.d  (postgres, ro) 初期化 SQL と生 CSV
+#  volume: pgdata   → /var/lib/postgresql/data     (postgres)  DB 実体
+# -----------------------------------------------------------------------------
+
+name: dbt-tutorials
+
+services:
+  postgres:
+    image: postgres:16.15
+    container_name: dbt-tutorials-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dbt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dbt}
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse}
+    ports:
+      - "${POSTGRES_HOST_PORT:-55432}:5432"
+    volumes:
+      - ./warehouse/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dbt} -d ${POSTGRES_DB:-warehouse}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  dbt:
+    build:
+      context: .
+      dockerfile: docker/dbt/Dockerfile
+    image: dbt-tutorials/dbt:1.11
+    container_name: dbt-tutorials-dbt
+    # 生成物（target/ logs/）がホストで編集できるよう、ホストの UID/GID で動かす
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      HOME: /tmp
+      DBT_PROFILES_DIR: /work/shared
+      DBT_POSTGRES_HOST: postgres
+      DBT_POSTGRES_PORT: "5432"
+      DBT_POSTGRES_USER: ${POSTGRES_USER:-dbt}
+      DBT_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dbt}
+      DBT_POSTGRES_DB: ${POSTGRES_DB:-warehouse}
+      DBT_POSTGRES_SCHEMA: ${DBT_POSTGRES_SCHEMA:-analytics}
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-dbt}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-dbt}
+      PGDATABASE: ${POSTGRES_DB:-warehouse}
+    volumes:
+      - .:/work
+    working_dir: /work
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "dbt --version >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  pgdata:
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      # WSL2 / VPN 環境ではホスト NIC の MTU が 1500 未満のことがある（WSL2 は既定 1420）。
+      # Docker のブリッジ既定 1500 のままだと大きいパケットが落ち、TLS ハンドシェイクが
+      # タイムアウトする（dbt deps など）。mk が .env にホストの実測値を書き込む。
+      com.docker.network.driver.mtu: ${DOCKER_NETWORK_MTU:-1420}

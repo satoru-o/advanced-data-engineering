@@ -1,0 +1,17 @@
+# dbt 生成物（bind mount でホストに出てくるが、コミットはしない）
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# 環境変数（mk が .env.example から生成する）
+.env
+
+# エディタ / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# 各チュートリアルの作業ディレクトリ（.skeleton から作られる）
+work/

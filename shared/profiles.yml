@@ -1,0 +1,16 @@
+# 全チュートリアル共通の接続設定。
+# 各 tutorial-NN/dbt_project.yml は `profile: tutorial` を指すだけでよい。
+# 接続情報は docker-compose.yml が渡す環境変数から取る（ここに直書きしない）。
+tutorial:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DBT_POSTGRES_HOST', 'postgres') }}"
+      port: "{{ env_var('DBT_POSTGRES_PORT', '5432') | int }}"
+      user: "{{ env_var('DBT_POSTGRES_USER', 'dbt') }}"
+      password: "{{ env_var('DBT_POSTGRES_PASSWORD', 'dbt') }}"
+      dbname: "{{ env_var('DBT_POSTGRES_DB', 'warehouse') }}"
+      schema: "{{ env_var('DBT_POSTGRES_SCHEMA', 'analytics') }}"
+      threads: 4
+      connect_timeout: 10
