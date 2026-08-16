@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: jaffle_shop_raw
+    description: "外部システムが Postgres の raw スキーマに入れた生データ"
+    schema: raw
+    tables:
+      - name: raw_customers
+      - name: raw_orders
+      - name: raw_payments

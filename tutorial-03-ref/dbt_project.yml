@@ -1,0 +1,18 @@
+name: tutorial_03
+version: "1.0.0"
+config-version: 2
+
+profile: tutorial
+
+# 編集するファイルは work/ 配下に置く（git 管理外・mk ... reset で作り直される）
+model-paths: ["work/models"]
+test-paths: ["tests"]
+target-path: "target"
+
+flags:
+  send_anonymous_usage_stats: false
+
+models:
+  tutorial_03:
+    # このチュートリアルの成果物は analytics_t03 スキーマに作られる
+    +schema: t03
