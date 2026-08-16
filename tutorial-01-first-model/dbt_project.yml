@@ -1,0 +1,19 @@
+name: tutorial_01
+version: "1.0.0"
+config-version: 2
+
+# 接続設定は /work/shared/profiles.yml（全チュートリアル共通）
+profile: tutorial
+
+# 編集するファイルは work/ 配下に置く（git 管理外・mk ... reset で作り直される）
+model-paths: ["work/models"]
+test-paths: ["tests"]
+target-path: "target"
+
+flags:
+  send_anonymous_usage_stats: false
+
+models:
+  tutorial_01:
+    # このチュートリアルの成果物は analytics_t01 スキーマに作られる
+    +schema: t01
