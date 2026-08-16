@@ -1,0 +1,11 @@
+version: 2
+
+# TODO: ここに source を定義する。
+#
+# 形は次のとおり（コメントを外して埋める）:
+#
+# sources:
+#   - name: <dbt から呼ぶときの名前>
+#     schema: <実際のスキーマ名>
+#     tables:
+#       - name: <実際のテーブル名>
