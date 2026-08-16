@@ -1,0 +1,19 @@
+[project]
+name = "dbt-tutorials"
+version = "0.1.0"
+description = "ローカル Docker だけで完結する dbt チュートリアル集"
+requires-python = ">=3.11,<3.12"
+
+# コンテナ内で使う dbt 一式。uv.lock でバージョンを固定している。
+# 変更したら `mk lock`（= コンテナ内で uv lock）→ イメージ再ビルド。
+dependencies = [
+    "dbt-core>=1.11,<1.12",
+    "dbt-postgres>=1.11,<1.12",
+]
+
+# 重いチュートリアル（DuckDB / Airflow など）で使う追加依存はここに足して、
+# その回のイメージだけ `uv sync --group <name>` する。
+[dependency-groups]
+
+[tool.uv]
+package = false
